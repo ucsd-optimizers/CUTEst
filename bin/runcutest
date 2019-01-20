@@ -428,11 +428,10 @@ fi
 (( OUTPUT )) && printf '\nCompiling current test problem if necessary ...\n'
 (( RECOMPILE )) && ${RM} ELFUN.o GROUP.o RANGE.o EXTER.o
 
-if [[ ${ARCH} == "mac64.osx.mat" ]]; then
+if [[ ${PKG} == "matlab" ]]; then
   for i in  ELFUN GROUP RANGE
   do
     if [[ ! -e ${i}.o  ]]; then
-        ${CP} ${i}.f ${i}.f
         command="${FORTRAN} ${PROBFLAGS} ${i}.f"
         (( show_commands )) && echo $command
         $command
@@ -490,7 +489,7 @@ if [[ ${PKG} == "matlab" ]]; then
     (( OUTPUT )) && printf '\nBuilding MEX file ...\n'
     outputName=mcutest
 
-    if [[ ${ARCH} == "mac64.osx.mat" ]]; then
+    if [[ ${ARCH} == "mac64.osx.ifr" ]]; then
       command="${MEXFORTRAN} -cxx -I${CUTEST}/include -output ${outputName} ${CUTEST}/objects/${ARCH}/${PRECISION}/mcutest.o ELFUN.o GROUP.o RANGE.o ${EXTER} -L${LIBDIR} -lcutest ${ALT_LIB_PATH[@]} ${BLAS} ${LAPACK} ${PACKLIBS} -L/opt/intel/lib -lifcore -liomp5 -lirc -limf -g"
     else
       command="${MEXFORTRAN} -cxx -I${CUTEST}/include -output ${outputName} ${CUTEST}/objects/${ARCH}/${PRECISION}/mcutest.o ELFUN.o GROUP.o RANGE.o ${EXTER} -L${LIBDIR} -lcutest ${ALT_LIB_PATH[@]} ${BLAS} ${LAPACK} ${PACKLIBS} -lgfortran -g"

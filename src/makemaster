@@ -11,6 +11,8 @@ SHELL = /bin/$(BINSHELL)
 
 all: all_$(PRECIS)
 all_single: tools_single
+	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   lrhb PRECIS=single PWD=$(PWD)/lrhb )
 	( cd algencan  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    algencan PRECIS=single PWD=$(PWD)/algencan )
 	( cd bobyqa  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
@@ -96,6 +98,8 @@ all_single: tools_single
 	( cd worhp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    worhp  PRECIS=single PWD=$(PWD)/worhp )
 all_double: tools_double
+	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   lrhb PRECIS=double PWD=$(PWD)/lrhb )
 	( cd algencan  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    algencan PRECIS=double PWD=$(PWD)/algencan )
 	( cd bobyqa  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \

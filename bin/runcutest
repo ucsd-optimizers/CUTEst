@@ -490,7 +490,7 @@ if [[ ${PKG} == "matlab" ]]; then
     outputName=mcutest
 
     if [[ ${ARCH} == "mac64.osx.ifr" ]]; then
-      command="${MEXFORTRAN} -cxx -I${CUTEST}/include -output ${outputName} ${CUTEST}/objects/${ARCH}/${PRECISION}/mcutest.o ELFUN.o GROUP.o RANGE.o ${EXTER} -L${LIBDIR} -lcutest ${ALT_LIB_PATH[@]} ${BLAS} ${LAPACK} ${PACKLIBS} -L/opt/intel/lib -lifcore -liomp5 -lirc -limf -g"
+      command="${MEXFORTRAN} -cxx -I${CUTEST}/include -output ${outputName} ${CUTEST}/objects/${ARCH}/${PRECISION}/mcutest.o ELFUN.o GROUP.o RANGE.o ${EXTER} -L${LIBDIR} -lcutest ${ALT_LIB_PATH[@]} ${BLAS} ${LAPACK} ${PACKLIBS} -L/opt/intel/lib -lifcore -liomp5 -lirc -limf -lsvml -g"
     else
       command="${MEXFORTRAN} -cxx -I${CUTEST}/include -output ${outputName} ${CUTEST}/objects/${ARCH}/${PRECISION}/mcutest.o ELFUN.o GROUP.o RANGE.o ${EXTER} -L${LIBDIR} -lcutest ${ALT_LIB_PATH[@]} ${BLAS} ${LAPACK} ${PACKLIBS} -lgfortran -g"
     fi

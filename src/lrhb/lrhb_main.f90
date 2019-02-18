@@ -56,9 +56,6 @@ program lrhb_main
   call lrhb &
      ( pName(1:10), n, objAdd, x, bl, bu, lrhb_usrfun, fobj, g, problem, info )
 
-  call lrhb_getstats &
-       (pName(1:10), n, objAdd, fobj, g, gNorm, x, bl, bu, problem)
-
   call lrhb_end( problem )
 
   call CUTEST_ureport( status, calls, cpu )

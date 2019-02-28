@@ -5,7 +5,7 @@ program sqic_main
 
   integer(ip), parameter :: iCutest = 55, iOut = 6, io_buffer = 11
 
-  integer(ip)   :: status, alloc_stat, j
+  integer(ip)   :: status, alloc_stat, j, k, i
   real(rp)      :: cpu(2), calls(7)
 
   real(rp),      allocatable :: zero(:), b(:)
@@ -110,14 +110,32 @@ program sqic_main
   if ( status /= 0 ) go to 910
 
   if (lenH > 0) then
-     allocate(H%row(lenH), H%col(lenH), H%cval(lenH), stat = alloc_stat)
+     allocate(H%row(2*lenH), H%col(2*lenH), H%cval(2*lenH), stat = alloc_stat)
      if (alloc_stat /= 0) GO TO 990
 
      call CUTEST_cish(status, n, zero, 0, neH, lenH, H%cval, H%row, H%col)
      if (status /= 0) go to 910
 
+     i = 0
+     do k = 1, neH
+        if (H%row(k) < H%col(k)) then
+           i = i + 1
+           H%row(neH+i)  = H%col(k)
+           H%col(neH+i)  = H%row(k)
+           H%cval(neH+i) = H%cval(k)
+        end if
+     end do
+     neH = neH + i
+
      H%n   = maxval(H%col(1:neH))
      H%nnz = neH
+
+
+     do k = 1, neH
+        write(6,*) ' H ij:', H%row(k), H%col(k), H%cval(k)
+     end do
+
+
   else
      H%n   = 0
      H%nnz = 0

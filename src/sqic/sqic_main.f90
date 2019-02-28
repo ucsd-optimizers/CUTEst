@@ -130,12 +130,6 @@ program sqic_main
      H%n   = maxval(H%col(1:neH))
      H%nnz = neH
 
-
-     do k = 1, neH
-        write(6,*) ' H ij:', H%row(k), H%col(k), H%cval(k)
-     end do
-
-
   else
      H%n   = 0
      H%nnz = 0

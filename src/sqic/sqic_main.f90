@@ -150,6 +150,8 @@ program sqic_main
        ('Cold', Prob(1:8), m, n, H, ncObj, cObj, ObjAdd, iObj, &
         A, bl, bu, hs, hEtype, x, pi, rc, nNames, Names, &
         probdat, INFO)
+
+  Obj = probdat%rd(rd_objective)
   call sqic_end(probdat)
 
 

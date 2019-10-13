@@ -115,15 +115,13 @@ $(OBJ)/$(package)_test.o: ../$(package)/$(package)_test.f
 
 #  CUTEst interface main programs
 
-$(OBJ)/$(package)_main.o: ../$(package)/$(package)_main.f
+$(OBJ)/$(package)_main.o: ../$(package)/$(package)_main.f90
 	@printf ' %-9s %-15s\t\t' "Compiling" "$(package)_main"
-	$(SED) -f $(SEDS) ../$(package)/$(package)_main.f > \
-          $(OBJ)/$(package)_main.f
-	cd $(OBJ); $(FORTRAN) -o $(package)_main.o $(FFLAGS77) \
-             $(package)_main.f \
-              || ( printf ' %-26s' "=> Disabling optimization " ; \
-               $(FORTRAN) -o $(package)_main.o $(FFLAGS77N) $(package)_main.f )
-	$(RM) $(OBJ)/$(package)_main.f
+	$(SED) -f $(SEDS) ../$(package)/$(package)_main.f90 > $(OBJ)/$(package)_main.f90
+	cd $(OBJ); $(FORTRAN) -o $(package)_main.o $(FFLAGS) $(package)_main.f90 \
+                || ( printf ' %-26s' "=> Disabling optimization " ; \
+                   $(FORTRAN) -o $(package)_main.o $(FFLAGSN) $(package)_main.f90 )
+	$(RM) $(OBJ)/$(package)_main.f90
 	@printf '[ OK ]\n'
 
 #  book keeping

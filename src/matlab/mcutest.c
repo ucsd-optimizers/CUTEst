@@ -757,7 +757,8 @@ extern "C" {
           nnzgci = CUTEst_nvar;
           ir = mxCalloc(nnzgci, sizeof(integer));
           g = (doublereal *)mxCalloc(nnzgci, sizeof(doublereal));
-          CUTEST_cofsg( &status, &CUTEst_nvar, x, f, &nnzgci, &nnzgci, g,
+          integer nnzgci0 = nnzgci;
+          CUTEST_cofsg( &status, &CUTEst_nvar, x, f, &nnzgci, &nnzgci0, g,
                         (integer *)ir, &somethingTrue);
           if (status != 0) {
             sprintf(msgBuf,"** CUTEst error, status = %d, aborting\n", status);
@@ -930,7 +931,8 @@ extern "C" {
         nnzgci = CUTEst_nvar;
         ir = mxCalloc(nnzgci, sizeof(integer));
         g = (doublereal *)mxCalloc(nnzgci, sizeof(doublereal));
-        CUTEST_cisgr( &status, &CUTEst_nvar, &icon, x, &nnzgci, &nnzgci, g,
+        integer nnzgci0 = nnzgci;
+        CUTEST_cisgr( &status, &CUTEst_nvar, &icon, x, &nnzgci, &nnzgci0, g,
                       (integer *)ir);
         if (status != 0) {
           sprintf(msgBuf,"** CUTEst error, status = %d, aborting\n", status);
@@ -1123,9 +1125,10 @@ extern "C" {
         J = (doublereal *)mxCalloc(CUTEst_nnzj, sizeof(doublereal));
         irow = (integer *)mxCalloc(CUTEst_nnzj, sizeof(integer));
         jcol = (integer *)mxCalloc(CUTEst_nnzj, sizeof(integer));
+        integer CUTEst_nnzj0 = CUTEst_nnzj;
 
         CUTEST_ccfsg( &status, &CUTEst_nvar, &CUTEst_ncon, x, c, &CUTEst_nnzj,
-              &CUTEst_nnzj, J, jcol, irow, &somethingTrue);
+              &CUTEst_nnzj0, J, jcol, irow, &somethingTrue);
         if (status != 0) {
             sprintf(msgBuf,"** CUTEst error, status = %d, aborting\n", status);
             mexErrMsgTxt(msgBuf);
@@ -1160,7 +1163,9 @@ extern "C" {
 
         ir = mxCalloc(nnzgci, sizeof(integer));
         g = (doublereal *)mxCalloc(nnzgci, sizeof(doublereal));
-        CUTEST_ccifsg( &status, &CUTEst_nvar, &icon, x, c, &nnzgci, &nnzgci, g,
+        integer nnzgci0 = nnzgci;
+
+        CUTEST_ccifsg( &status, &CUTEst_nvar, &icon, x, c, &nnzgci, &nnzgci0, g,
                        (integer *)ir, &somethingTrue);
         if (status != 0) {
             sprintf(msgBuf,"** CUTEst error, status = %d, aborting\n", status);

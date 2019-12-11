@@ -11,12 +11,15 @@ SHELL = /bin/$(BINSHELL)
 
 all: all_$(PRECIS)
 all_single: tools_single
+<<<<<<< HEAD
+=======
+	( cd dnopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   dnopt PRECIS=single PWD=$(PWD)/dnopt )
+>>>>>>> 24c4b256e3a4a0994441d2f6a50517ac0404f00c
 	( cd snopt9  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    snopt9 PRECIS=single PWD=$(PWD)/snopt9 )
 	( cd mystats  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    mystats PRECIS=single PWD=$(PWD)/mystats )
-	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   lrhb PRECIS=single PWD=$(PWD)/lrhb )
 	( cd algencan  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    algencan PRECIS=single PWD=$(PWD)/algencan )
 	( cd bobyqa  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
@@ -102,12 +105,15 @@ all_single: tools_single
 	( cd worhp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    worhp  PRECIS=single PWD=$(PWD)/worhp )
 all_double: tools_double
+<<<<<<< HEAD
+=======
+	( cd dnopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   dnopt PRECIS=double PWD=$(PWD)/dnopt )
+>>>>>>> 24c4b256e3a4a0994441d2f6a50517ac0404f00c
 	( cd snopt9  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    snopt9 PRECIS=double PWD=$(PWD)/snopt9 )
 	( cd mystats  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    mystats PRECIS=double PWD=$(PWD)/mystats )
-	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   lrhb PRECIS=double PWD=$(PWD)/lrhb )
 	( cd algencan  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    algencan PRECIS=double PWD=$(PWD)/algencan )
 	( cd bobyqa  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
@@ -201,11 +207,16 @@ all_2008_single: all_single
                    ral_nlls  PRECIS=single PWD=$(PWD)/ral_nlls )
 	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    sqic  PRECIS=single PWD=$(PWD)/sqic )
+	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   lrhb PRECIS=single PWD=$(PWD)/lrhb )
+
 all_2008_double: all_double
 	( cd ral_nlls  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    ral_nlls  PRECIS=double PWD=$(PWD)/ral_nlls )
 	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    sqic  PRECIS=double PWD=$(PWD)/sqic )
+	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   lrhb PRECIS=double PWD=$(PWD)/lrhb )
 
 #  all tools (including gsl) and interfaces
 

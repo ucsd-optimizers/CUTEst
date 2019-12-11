@@ -1,12 +1,12 @@
 #!/bin/bash
-# Definitions for the SNOPT package
-# N. Gould, D. Orban & Ph. Toint, January 19th, 2013
+# Definitions for the CURVI package
+# N. Gould, April 10th, 2019
 
 # The name of the package
-export PACKAGE=snopt
+export PACKAGE=curvi
 
 # Subdirectory of ${CUTEST}/src where the package lives
-export PACKDIR=snopt
+export PACKDIR=curvi
 
 # Precision for which the package was written
 # Valid values are "single", "double", "single double" and "double single"
@@ -14,13 +14,13 @@ export PACK_PRECISION="double"
 
 # Define the name of any package object files used; any object file without
 # a full path must occur in ${CUTEST}/objects/(architecture)/(precision)/
-export PACKOBJS=""
+export PACKOBJS="${CURVI}/curvif.o ${CURVI}/curvig.o ${CURVI}/curvih.o ${CURVI}/rutf.o ${CURVI}/rutgh.o ${CURVI}/rut.o"
 
 # Define package and system libraries using -llibrary to include library.a
 # or library.so together with any nonstandard library paths using -L(path)
-export PACKLIBS="-L/${SNOPT}/lib -lsnopt7"
+export PACKLIBS=""
 
 # Define the name of the package specification file if any. This possibly
 # precision-dependent file must either lie in the current directory or in
 # ${CUTEST}/src/${PACKDIR}
-export SPECS="SNOPT.SPC"
+export SPECS="CURVI.SPC"

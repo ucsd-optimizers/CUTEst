@@ -1,12 +1,12 @@
-#  Main body of the installation makefile for CUTEst LBFGS-B interface
+#  Main body of the installation makefile for CUTEst CURVI interface
 
 #  N. Gould, D. Orban and Ph. L. Toint.
-#  This version: 4 I 2013
+#  This version: 09 IV 2019
 
 #  package
 
-PACKAGE = LBFGSB
-package = lbfgsb
+PACKAGE = CURVI
+package = curvi
 
 SHELL = /bin/$(BINSHELL)
 
@@ -102,25 +102,27 @@ ctools:
 
 #  individual compilations
 
-$(OBJ)/$(package)_test.o: ../$(package)/$(package)_test.f
+$(OBJ)/$(package)_test.o: ../$(package)/$(package)_test.f90
 	@printf ' %-9s %-15s\t\t' "Compiling" "$(package)_test"
-	$(SED) -f $(SEDS) ../$(package)/$(package)_test.f > \
-          $(OBJ)/$(package)_test.f
-	cd $(OBJ); $(FORTRAN) -o $(package)_test.o $(FFLAGS77) \
-          $(package)_test.f \
+	$(SED) -f $(SEDS) ../$(package)/$(package)_test.f90 > \
+          $(OBJ)/$(package)_test.f90
+	cd $(OBJ); $(FORTRAN) -o $(package)_test.o $(FFLAGS) \
+          $(package)_test.f90 \
             || ( printf ' %-26s' "=> Disabling optimization " ; \
-              $(FORTRAN) -o $(package)_test.o $(FFLAGS77N) $(package)_test.f )
-	$(RM) $(OBJ)/$(package)_test.f
+              $(FORTRAN) -o $(package)_test.o $(FFLAGSN) $(package)_test.f90 )
+	$(RM) $(OBJ)/$(package)_test.f90
 	@printf '[ OK ]\n'
 
 #  CUTEst interface main programs
 
 $(OBJ)/$(package)_main.o: ../$(package)/$(package)_main.f90
 	@printf ' %-9s %-15s\t\t' "Compiling" "$(package)_main"
-	$(SED) -f $(SEDS) ../$(package)/$(package)_main.f90 > $(OBJ)/$(package)_main.f90
-	cd $(OBJ); $(FORTRAN) -o $(package)_main.o $(FFLAGS) $(package)_main.f90 \
-                || ( printf ' %-26s' "=> Disabling optimization " ; \
-                   $(FORTRAN) -o $(package)_main.o $(FFLAGSN) $(package)_main.f90 )
+	$(SED) -f $(SEDS) ../$(package)/$(package)_main.f90 > \
+          $(OBJ)/$(package)_main.f90
+	cd $(OBJ); $(FORTRAN) -o $(package)_main.o $(FFLAGS) \
+             $(package)_main.f90 \
+              || ( printf ' %-26s' "=> Disabling optimization " ; \
+               $(FORTRAN) -o $(package)_main.o $(FFLAGSN) $(package)_main.f90 )
 	$(RM) $(OBJ)/$(package)_main.f90
 	@printf '[ OK ]\n'
 
@@ -136,4 +138,3 @@ cleanall:
           "Removing all $(PRECIS) precision object and module files"
 	$(RM) $(OBJ)/* $(MOD)/*
 	@printf '[ OK ]\n'
-

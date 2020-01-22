@@ -199,18 +199,18 @@ all_2008: all_2008_$(PRECIS)
 all_2008_single: all_single
 	( cd ral_nlls  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    ral_nlls  PRECIS=single PWD=$(PWD)/ral_nlls )
-	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   sqic  PRECIS=single PWD=$(PWD)/sqic )
-	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   lrhb PRECIS=single PWD=$(PWD)/lrhb )
+#	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+#                   sqic  PRECIS=single PWD=$(PWD)/sqic )
+#	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+#                   lrhb PRECIS=single PWD=$(PWD)/lrhb )
 
 all_2008_double: all_double
 	( cd ral_nlls  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    ral_nlls  PRECIS=double PWD=$(PWD)/ral_nlls )
-	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   sqic  PRECIS=double PWD=$(PWD)/sqic )
-	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-                   lrhb PRECIS=double PWD=$(PWD)/lrhb )
+#	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+#                   sqic  PRECIS=double PWD=$(PWD)/sqic )
+#	( cd lrhb  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+#                   lrhb PRECIS=double PWD=$(PWD)/lrhb )
 
 #  all tools (including gsl) and interfaces
 
@@ -464,8 +464,8 @@ run_test_2008_single: run_test_single
 run_test_2008_double: run_test_double
 	( cd ral_nlls  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
               run_test  PRECIS=double PWD=$(PWD)/ral_nlls )
-	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
-              run_test  PRECIS=double PWD=$(PWD)/sqic )
+#	( cd sqic  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+#              run_test  PRECIS=double PWD=$(PWD)/sqic )
 
 #  book keeping
 

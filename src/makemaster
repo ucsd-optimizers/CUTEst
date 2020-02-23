@@ -11,6 +11,8 @@ SHELL = /bin/$(BINSHELL)
 
 all: all_$(PRECIS)
 all_single: tools_single
+	( cd asa_cg  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   asa_cg PRECIS=single PWD=$(PWD)/asa_cg )
 #	( cd dnopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
 #                   dnopt PRECIS=single PWD=$(PWD)/dnopt )
 #	( cd snopt9  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
@@ -102,6 +104,8 @@ all_single: tools_single
 	( cd worhp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    worhp  PRECIS=single PWD=$(PWD)/worhp )
 all_double: tools_double
+	( cd asa_cg  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   asa_cg PRECIS=double PWD=$(PWD)/asa_cg )
 #	( cd dnopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
 #                   dnopt PRECIS=double PWD=$(PWD)/dnopt )
 #	( cd snopt9  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \

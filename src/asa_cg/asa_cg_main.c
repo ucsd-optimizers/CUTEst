@@ -25,10 +25,6 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
   void asa_grad(asa_objective *asa);
   double asa_valgrad(asa_objective *asa);
 
-  /* global variables */
-  integer CUTEst_nvar;        /* number of variables */
-  integer CUTEst_ncon;        /* number of constraints */
-
   /* main program */
   int MAINENTRY(void) {
     char *fname = "OUTSDIF.d"; /* CUTEst data file */
@@ -39,10 +35,10 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     integer status;            /* Exit flag from CUTEst tools */
     double  grad_tol = 1.e-6; /* required gradient tolerance */
 
+    integer     M, N;
     doublereal *x, *bl, *bu;
     char       *pname;
     logical     efirst = FALSE_, lfirst = FALSE_, nvfrst = FALSE_, grad;
-    logical     constrained = FALSE_;
 
     doublereal  calls[7], cpu[2];
     int         i, status_asa;
@@ -62,28 +58,25 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     }
 
     /* Determine problem size */
-    CUTEST_cdimen(&status, &funit, &CUTEst_nvar, &CUTEst_ncon);
+    CUTEST_cdimen(&status, &funit, &N, &M);
     if (status) {
       printf("** CUTEst error, status = %d, aborting\n", status);
       exit(status);
     }
-    /* Determine whether to call constrained or unconstrained tools */
-    if (CUTEst_ncon) constrained = TRUE_;
-
-    /* stop if the problem has constraints */
-    if (constrained) {
+    if (M) {
+      /* stop if the problem has constraints */
       printf(" ** the problem %s has %i constraints\n",
-	     pname,  CUTEst_ncon);
+	     pname,  M);
       printf("    cg_descent is for unconstrained optimization\n");
       exit(-1);
     }
 
     /* Reserve memory for variables, bounds, and multipliers */
     /* and call appropriate initialization routine for CUTEst */
-    MALLOC(x,  CUTEst_nvar, doublereal);
-    MALLOC(bl, CUTEst_nvar, doublereal);
-    MALLOC(bu, CUTEst_nvar, doublereal);
-    CUTEST_usetup(&status, &funit, &iout, &io_buffer, &CUTEst_nvar,
+    MALLOC(x,  N, doublereal);
+    MALLOC(bl, N, doublereal);
+    MALLOC(bu, N, doublereal);
+    CUTEST_usetup(&status, &funit, &iout, &io_buffer, &N,
 		  x, bl, bu);
     if (status) {
       printf("** CUTEst error, status = %d, aborting\n", status);
@@ -111,13 +104,15 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     asa_default (&asaParm);
 
     /* if you want to change parameters, change them here: */
-    cgParm.PrintParms = TRUE;
+    cgParm.PrintParms = FALSE;
     cgParm.PrintLevel = 0;
-    asaParm.PrintParms = TRUE;
+    asaParm.PrintParms = FALSE;
     asaParm.PrintLevel = 0;
 
+    cgParm.maxit = 10000;
+
     /* Call ASA_CG */
-    status_asa = asa_cg(x, bl, bu, CUTEst_nvar, &Stats, &cgParm, &asaParm,
+    status_asa = asa_cg(x, bl, bu, N, &Stats, &cgParm, &asaParm,
 			grad_tol, asa_value, asa_grad, asa_valgrad, NULL, NULL);
 
     /* Get CUTEst statistics */
@@ -130,7 +125,7 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     printf(" *********************** CUTEst statistics ************************\n");
     printf(" Code used               : asa_cg\n");
     printf(" Problem                 : %-s\n", pname);
-    printf(" # variables             = %-10d\n", CUTEst_nvar);
+    printf(" # variables             = %-10d\n", N);
     printf(" # cg iterations         = %li\n", Stats.cgiter);
     printf(" # objective functions   = %-15.7g\n", calls[0]);
     printf(" # objective gradients   = %-15.7g\n", calls[1]);
@@ -166,8 +161,9 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
 double asa_value(asa_objective *asa) {
   double f;
   integer status;
-
-  CUTEST_ufn(&status, &CUTEst_nvar, asa->x, &f);
+  integer N;
+  N = asa->n;
+  CUTEST_ufn(&status, &N, asa->x, &f);
   if ((status == 1) || (status == 2)) {
     printf("** CUTEst error, status = %d, aborting\n", status);
     exit(status);
@@ -178,7 +174,9 @@ double asa_value(asa_objective *asa) {
 
 void asa_grad(asa_objective *asa) {
   integer status;
-  CUTEST_ugr(&status, &CUTEst_nvar, asa->x, asa->g);
+  integer N;
+  N = asa->n;
+  CUTEST_ugr(&status, &N, asa->x, asa->g);
   if ((status == 1) || (status == 2)) {
     printf("** CUTEst error, status = %d, aborting\n", status);
     exit(status);
@@ -188,9 +186,11 @@ void asa_grad(asa_objective *asa) {
 double asa_valgrad(asa_objective *asa) {
   logical grad;
   double f;
+  integer N;
   integer status;
   grad = 1;
-  CUTEST_uofg(&status, &CUTEst_nvar, asa->x, &f, asa->g, &grad);
+  N = asa->n;
+  CUTEST_uofg(&status, &N, asa->x, &f, asa->g, &grad);
   if ((status == 1) || (status == 2)) {
     printf("** CUTEst error, status = %d, aborting\n", status);
     exit(status);

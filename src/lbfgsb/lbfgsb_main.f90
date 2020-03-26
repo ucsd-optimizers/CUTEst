@@ -239,7 +239,7 @@ program          lbfgsb_main
   itns   = isave(30)
 
   call lbGetStats &
-       (pname(1:8), n, iflag, itns, nFuns, nFunGs, f, g, gnorm, &
+       (pname(1:10), n, iflag, itns, nFuns, nFunGs, f, g, gnorm, &
         x, xl, xu, cpu(2), wtime2 - wtime1)
 
   close(input)
@@ -425,10 +425,10 @@ subroutine lbGetStats &
   if (INFO == 0) then
         !        Relax
   else
-     String(16:29) = ' '
-     String(33:44) = ' '
-     String(25:27) = 'NaN'
-     String(40:42) = 'NaN'
+     String(17:59) = ' '
+     String(28:30) = 'NaN'
+     String(42:44) = 'NaN'
+     String(57:59) = 'NaN'
   end if
 
   write(iPP,7000) trim(String)

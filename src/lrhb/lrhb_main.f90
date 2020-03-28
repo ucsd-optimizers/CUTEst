@@ -112,7 +112,12 @@ contains
     !===========================================================================
     logical :: needG
 
-    needG = .true.
+    if (mode == 0) then
+       needG = .false.
+    else
+       needG = .true.
+    end if
+
     call cutest_uofg(status, n, x, f, g, needG)
 
   end subroutine lrhb_usrfun

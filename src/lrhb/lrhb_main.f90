@@ -12,13 +12,15 @@ program lrhb_main
 
   real(rp)      :: objAdd, fobj, gNorm, cpu( 2 ), calls( 7 )
 
+  real(rp), external :: dnrm2
+
   character(10), allocatable :: vnames(:)
   real(rp),      allocatable :: bl(:), bu(:), x(:), g(:)
 
   integer(ip),   parameter   :: iCutest = 55,  iOut   = 6, io_buffer = 11
   real(rp),      parameter   :: zero    = 0.0, infBnd = 1.0d+20
 
-  type(solver_data) :: problem
+  type(lrhb_options) :: options
 
   !-----------------------
   ! Open problem data file
@@ -50,13 +52,13 @@ program lrhb_main
   !-----------------------------------------------------------------------------
   objAdd = zero
 
-  call lrhb_initialize( trim(pName) // '.out', 'screen', problem )
-  call lrhb_specs( problem, 'LRHB.SPC', info )
+  call lrhb_initialize( trim(pName) // '.out', 'screen', options )
+  call lrhb_specs( options, 'LRHB.SPC', info )
 
   call lrhb &
-     ( pName(1:10), n, objAdd, x, bl, bu, lrhb_usrfun, fobj, g, problem, info )
+     ( pName(1:10), n, objAdd, x, bl, bu, lrhb_usrfun, fobj, g, options, info )
 
-  call lrhb_end( problem )
+  call lrhb_end( options )
 
   call CUTEST_ureport( status, calls, cpu )
   write(iOut, 2010) pName, n, int(calls(1)), int(calls(2)), info, fobj, cpu( 1 ), cpu( 2 )
@@ -110,7 +112,12 @@ contains
     !===========================================================================
     logical :: needG
 
-    needG = .true.
+    if (mode == 0) then
+       needG = .false.
+    else
+       needG = .true.
+    end if
+
     call cutest_uofg(status, n, x, f, g, needG)
 
   end subroutine lrhb_usrfun

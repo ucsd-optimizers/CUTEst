@@ -9,19 +9,19 @@ program          lbfgsb_main
   !  Updated by Philip Gill, September 2017
 
   implicit none
-  integer              :: i, n, m, maxit, status, nFuns, nFunGs
-  integer              :: iflag, iprint, itns, lwa, liwa, isave(44)
-  integer              :: io_buffer = 11
+  integer          :: i, n, m, maxit, status, nFuns, nFunGs
+  integer          :: iflag, iprint, itns, lwa, liwa, isave(44)
+  integer          :: io_buffer = 11
 
-  double precision     :: epsmch, f0, f, gnorm
-  double precision     :: dsave(29)
-  character(10)        :: pname, spcdat
-  double precision     :: factr, pgtol, time1, time2, tlimit
-  double precision     :: cpu(2), calls(4)
+  double precision :: epsmch, f0, f, gnorm
+  double precision :: dsave(29)
+  double precision :: factr, pgtol, time1, time2, wtime1, wtime2, tlimit
+  double precision :: cpu(2), calls(4)
 
-  character(60)        :: task, csave
+  character(len=10):: pname, spcdat
+  character(len=60):: task, csave
 
-  logical              :: lsave(4), NoSolution, OptCon(3)
+  logical          :: lsave(4), NoSolution, OptCon(3)
 
   integer,          allocatable, dimension(:) :: nbd, iwa
   double precision, allocatable, dimension(:) :: x, xl, xu, g, wa
@@ -119,7 +119,8 @@ program          lbfgsb_main
 
   ! Start the CPU time.
 
-  call timer(time1)
+  call  timer(time1)
+  call wtimer(wtime1)
 
   !=========================================================================
 
@@ -170,6 +171,7 @@ program          lbfgsb_main
            optCon(2) = f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)
            optCon(3) = gnorm  <= sqrt(epsmch)
            iflag = 0 ! not going to happen because xfactr, xpgtol=0
+
         else if (task(1:4) == 'ABNO' ) then
            iflag = 1
            write( out, "( ' Abnormal exit ' )" )
@@ -197,10 +199,15 @@ program          lbfgsb_main
               iflag = 0
            end if
         endif
+
+!!$           write(6,*) ' gnorm:', gnorm
+!!$           write(6,*) ' f0 f:', abs(f0), abs(f)
+!!$           write(6,*) ' tol:', pgtol, factr, sqrt(epsmch)
+!!$           write(6,*) f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)
+!!$           write(6,*) gnorm  <= pgtol*(one + abs(f))
+!!$           write(6,*) gnorm  <= sqrt(epsmch)
      end if
   end do
-
-  write(6,*) OptCon(1:3), iflag
 
   gnorm = dsave( 13 )
 
@@ -208,7 +215,7 @@ program          lbfgsb_main
  !if (iflag /=0  .and.                 gNorm <=  pgTol*(one + abs(f))*ten) iflag = 6
 
   ! Terminal exit.
-
+  call wtimer(wtime2)
   call CUTEST_ureport( status, calls, cpu )
   if (status /= 0) go to 910
   NoSolution = .true.
@@ -231,11 +238,13 @@ program          lbfgsb_main
   nFunGs = calls(2)
   itns   = isave(30)
 
-  call lbGetStats ( pname(1:8), n, iflag, itns, nFuns, nFunGs, f, g, gnorm, &
-                    x, xl, xu, cpu(2) )
+  call lbGetStats &
+       (pname(1:10), n, iflag, itns, nFuns, nFunGs, f, g, gnorm, &
+        x, xl, xu, cpu(2), wtime2 - wtime1)
 
-  close( input  )
-  call CUTEST_uterminate( status )
+  close(input)
+  call CUTEST_uterminate(status)
+
   stop
 
 910 continue
@@ -266,18 +275,19 @@ program          lbfgsb_main
               /, ' Final norm of projected gradient = ', 1P, D12.4, &
               //, '                XL           X        XU',       &
                  '           G ' )
-2020 format(  1x, a10, 1p, 4d12.4 )
+2020 format(1x, a10, 1p, 4d12.4)
 
 end program lbfgsb_main
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 subroutine lbGetStats &
-     ( probName, n, INFO, itns, nFuns, nFunGs, f, g, gNorm, x, bl, bu, runTime )
+     (probName, n, INFO, itns, nFuns, nFunGs, &
+      f, g, gNorm, x, bl, bu, cpuTime, wallTime)
 
   implicit         none
   integer          :: INFO, itns, n, nFuns, nFunGs
-  double precision :: f, gNorm, runTime
+  double precision :: f, gNorm, cpuTime, wallTime
   double precision :: g(n), x(n), bl(n), bu(n)
   character        :: ProbName*8
 
@@ -293,7 +303,7 @@ subroutine lbGetStats &
   !  INFO   3  Maximum number of iterations exceeded
   !
   !==================================================================
-  character                   :: flag*3, msg*43,  String*132
+  character                   :: flag*3, msg*43,  String*150
   logical                     :: FileExists
   integer                     :: j, nDegen, nFixed
   double precision            :: rnFuns
@@ -374,7 +384,8 @@ subroutine lbGetStats &
      write(iTeX, 3000)
   end if
 
-  write(String, 3100) probName, itns, nFuns, gNorm, f, runTime, flag
+  write(String, 3100) &
+       probName, itns, nFuns, gNorm, f, wallTime, cpuTime, flag
   write(iTeX,7000) trim(String)
 
   close(iTeX)
@@ -390,7 +401,7 @@ subroutine lbGetStats &
      write(iAll, 4000)
   end if
 
-  write(String, 4100) probName, n, itns, nFuns, runTime, gNorm, f, msg
+  write(String, 4100) probName, n, itns, nFuns, wallTime, cpuTime, gNorm, f, msg
   write(iAll,7000) trim(String)
 
   close(iAll)
@@ -406,17 +417,18 @@ subroutine lbGetStats &
      write(iPP, 6000)
   end if
 
-  RunTime = max(1.0d-4, RunTime)
-  rnFuns  = nFuns
-  rnFuns  = max(1.0d-3,  rnFuns )
-  write(String, 6100) probName, INFO, RunTime, rnFuns
+  wallTime = max(1.0d-4, wallTime)
+  cpuTime  = max(1.0d-4, cpuTime)
+  rnFuns   = nFuns
+  rnFuns   = max(1.0d-3,  rnFuns )
+  write(String, 6100) probName, INFO, wallTime, cpuTime, rnFuns
   if (INFO == 0) then
         !        Relax
   else
-     String(16:29) = ' '
-     String(33:44) = ' '
-     String(25:27) = 'NaN'
-     String(40:42) = 'NaN'
+     String(17:59) = ' '
+     String(28:30) = 'NaN'
+     String(42:44) = 'NaN'
+     String(57:59) = 'NaN'
   end if
 
   write(iPP,7000) trim(String)
@@ -431,26 +443,39 @@ subroutine lbGetStats &
 3000 format(' \\begin{tabular}{lrrrrrrl}' /                &
             ' Problem Name&      Itns',                    &
             ' &       Fun &', '    norm(g)    ',           &
-            ' & Objective  &    Time& Status \\\\[2ex]')
+            ' & Objective  &    Time& CPUTime& Status \\\\[2ex]')
 3100 format(a12, 2(' &',i10), ' &$',                       &
-            1p, e13.6, ' $&$', e9.2 , ' $&', 0p, f8.2, '&{\em ',&
+            1p, e13.6, ' $&$', e9.2 , ' $&', 0p, f8.2, '&', f8.2, '&{\em ',&
             a3, '} \\' )
 
 !3200 format(' \\end{tabular}'
 !    &    // ' \\begin{verbatim}')
 
-4000 format('Name', 12x, 'n', 6x, 'Itns', 6x,                  &
-            'nFun', 4x, 'cpu(s)', 2x, 'norm gfree', 6x, 'Obj', &
+4000 format(6x, 'Name', 6x, 'n', 6x, 'Itns', 6x,                  &
+            'nFun', 1x, 3x, 'wall(s)', 1x, 3x, 'cpu(s)', 2x,   &
+            'norm gfree', 6x, 'Obj', &
             11x, 'Result')
-4100 format( a10, i7, 2i10, 1x, f9.2, 3x, 1p, e9.2, 2x, e16.9, 2x, a)
+4100 format( a10, i7, 2i10, 2x, f9.2, 1x, f9.2, 3x, 1p, e9.2, 2x, e16.9, 2x, a)
 
-6000 format('ProName', 6x, 'Info', 7x, 'Time', 11x, 'Funs' )
-6100 format(a10, 3x, i2, 2x, f12.4, 3x, f12.3)
+6000 format('   ProName', 2x, 'Info', 10x, 'Time', 10x, ' CPU', 11x, 'Funs' )
+6100 format(a10, 4x, i2, 2x, f12.4, 2x, f12.4, 3x, f12.3)
 7000 format( a )
 
 end  subroutine lbGetStats
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+subroutine wtimer(wtime)
+
+  ! Wall timer
+
+  integer :: count, rate
+  double precision :: wtime
+
+  call system_clock(count, rate)
+  wtime = real(count) / real(rate)
+
+end subroutine wtimer
 
 subroutine timer( ttime )
 

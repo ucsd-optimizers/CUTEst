@@ -289,7 +289,7 @@ subroutine lbGetStats &
   integer          :: INFO, itns, n, nFuns, nFunGs
   double precision :: f, gNorm, cpuTime, wallTime
   double precision :: g(n), x(n), bl(n), bu(n)
-  character        :: ProbName*8
+  character        :: ProbName*10
 
   !==================================================================
   ! lbGetStats prints statistics associated with an LBFGSB run.
@@ -457,7 +457,7 @@ subroutine lbGetStats &
             11x, 'Result')
 4100 format( a10, i7, 2i10, 2x, f9.2, 1x, f9.2, 3x, 1p, e9.2, 2x, e16.9, 2x, a)
 
-6000 format('   ProName', 2x, 'Info', 10x, 'Time', 10x, ' CPU', 11x, 'Funs' )
+6000 format('  ProbName', 2x, 'Info', 10x, 'Time', 10x, ' CPU', 11x, 'Funs' )
 6100 format(a10, 4x, i2, 2x, f12.4, 2x, f12.4, 3x, f12.3)
 7000 format( a )
 
@@ -466,14 +466,13 @@ end  subroutine lbGetStats
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 subroutine wtimer(wtime)
-
   ! Wall timer
 
   integer :: count, rate
   double precision :: wtime
 
   call system_clock(count, rate)
-  wtime = real(count) / real(rate)
+  wtime = real(count,kind=real64) / real(rate,kind=real64)
 
 end subroutine wtimer
 

@@ -466,6 +466,8 @@ end  subroutine lbGetStats
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 subroutine wtimer(wtime)
+  use iso_fortran_env, only : real64
+  implicit none
   ! Wall timer
 
   integer :: count, rate
@@ -477,7 +479,7 @@ subroutine wtimer(wtime)
 end subroutine wtimer
 
 subroutine timer( ttime )
-
+  implicit none
   !  CPU timer
 
   double precision :: ttime

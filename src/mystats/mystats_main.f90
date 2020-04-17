@@ -7,7 +7,7 @@ program stats_main
   implicit none
 
   logical :: &
-       qpobj, lpobj, lincon, uncon, bdcon, fileExists
+       fileExists
   character :: &
        code*2, pname*10
   integer   :: &
@@ -56,38 +56,32 @@ program stats_main
      call CUTEST_udimsh( status, nnzh )
   end if
 
+  ! Objective
   nnH = max(nnJac, nnObj)
-  if (m == 0) then
-     nfree = 0
-     do j = 1, n
-        if (bl(j) < -infBnd .and. bu(j) > infBnd) then
-           nfree = nfree + 1
-        end if
-     end do
-  end if
-
-  !qpobj  =
-  lpobj  = nnH == 0
-  lincon = nLC == m
-  uncon  = m == 0 .and. nfree == n
-  bdcon  = m == 0 .and. nfree <  n
-
-!!$  if (qobj) then
-!!$     code(1:1) = 'Q'
-  if (lpobj) then
+  if (nnH == 0) then
      code(1:1) = 'L'
   else
      code(1:1) = 'N'
   end if
 
-  if (lincon) then
-     code(2:2) = 'L'
-  else if (uncon) then
+  ! Constraints
+  if (m == 0) then
+     nfree = 0
+     do j = 1, n
+        if (bl(j) <= -infBnd .and. bu(j) >= infBnd) then
+           nfree = nfree + 1
+        end if
+     end do
+
+     ! Unconstrained
      code(2:2) = 'U'
-  else if (bdcon) then
-     code(2:2) = 'B'
+     ! Bound constrained
+     if (nfree < n) code(2:2) = 'B'
+
   else
+     ! Constrained
      code(2:2) = 'C'
+     if (m == nLC) code(2:2) = 'L'
   end if
 
   if (allocated( bl )      ) deallocate( bl  )
@@ -116,7 +110,8 @@ program stats_main
           '    linCon', &
           '    nlnCon', &
           '      nnzh', &
-          '      nnzj'
+          '      nnzj', &
+          '      code'
   end if
 
   write(iPP,2000) pname, m, n, nnObj, nnJac, nEQ, nLC, m-nLC, nnzh, nnzj, code
@@ -132,7 +127,7 @@ program stats_main
 
   stop
 
-1000 format(10a10)
-2000 format(a10, 9(2x, i8), 1x, a2)
+1000 format(11a10)
+2000 format(a10, 9(2x, i8), 8x, a2)
 
 end program stats_main

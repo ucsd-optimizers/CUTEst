@@ -183,4 +183,34 @@ program sqic_main
           ,' Solve time              =      ', 0P, F10.2, ' seconds' // &
            66('*') /)
 
+contains
+
+!!$  subroutine cutestHx(nnH, x, Hx, jcol)
+!!$    integer(ip), intent(in)  :: nnH, jcol
+!!$    real(rp),    intent(in)  :: x(nnH)
+!!$    real(rp),    intent(out) :: Hx(nnH)
+!!$    !---------------------------------------------------------------------------
+!!$    !---------------------------------------------------------------------------
+!!$    logical :: &
+!!$         gotH
+!!$    integer(ip) :: &
+!!$         status
+!!$    real(rp) :: &
+!!$         xx(nn), Hxx(nn), y(mm)
+!!$
+!!$    xx(:)     = zero
+!!$    y(:)      = zero
+!!$    xx(1:nnH) = x(1:nnH)
+!!$
+!!$    if (state == 0) then
+!!$       gotH = .true.
+!!$    else
+!!$       gotH = .false.
+!!$    end if
+!!$
+!!$    call cutest_chprod(status, nn, mm, gotH, xx, y, xx, Hxx)
+!!$    Hx(1:nnH) = Hxx(1:nnH)
+!!$
+!!$  end subroutine cutestHx
+
 end program sqic_main

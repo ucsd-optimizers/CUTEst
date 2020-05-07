@@ -20,9 +20,8 @@ program sqic_main
   integer(ip)   :: INFO, n, m, nm, neA, lenA, neH, lenH
   real(rp)      :: Obj, ObjAdd
 
-  character(len=10) :: Prob
+  character(len=10) :: probname
   character(len=20) :: filename
-  character(len=10), allocatable :: cNames(:)
 
   !-----------------------------------------------------------------------------
   ! Read CUTEst problem data
@@ -38,21 +37,24 @@ program sqic_main
 
   nm = n+m
 
+  prob%m = m
+  prob%n = n
+
   ! Allocate SQIC structures
   allocate &
        (prob%bl(nm), prob%bu(nm), prob%cObj(n), prob%x(nm), &
-        prob%pi(m), prob%rc(nm), prob%Names(nm), &
+        prob%pi(m), prob%rc(nm), prob%varnames(n), prob%connames(m), &
         stat=alloc_stat)
   allocate &
-       (b(m), zero(n), equation(m), linear(m), cNames(nm), &
+       (b(m), zero(n), equation(m), linear(m), &
         stat = alloc_stat)
   if (alloc_stat /= 0) GO TO 990
 
   allocate(snAij :: prob%A)
   allocate(snHij :: prob%H)
 
-  zero(:)  = 0.0
-  x(:)     = 0.0
+  zero(:)   = 0.0
+  prob%x(:) = 0.0
 
   ! Get initial x, bounds, constraint types
   call CUTEST_csetup &
@@ -69,12 +71,9 @@ program sqic_main
 
 
   ! Variable/constraint names
-  call CUTEST_cnames(status, n, m, Prob, cNames(1:n), cNames(n+1:n+m))
+  call CUTEST_cnames(status, n, m, probname, prob%varnames(1:n), prob%connames(1:m))
   if (status /= 0) go to 910
-
-  prob%name(1:10)   = Prob(1:10)
-  prob%Names(1:n+m) = cNames(1:n+m)
-  deallocate(cNames)
+  prob%name(1:8) = probname(1:8)
 
 
   ! Constraint matrix
@@ -112,7 +111,7 @@ program sqic_main
      if (lenH > 0) then
         call H%init(n, lenH)
 
-        allocate(Hrow(2*lenH), Hcol(2*lenH), Hval(2*lenH), stat = alloc_stat)
+        allocate(Hrow(lenH), Hcol(lenH), Hval(lenH), stat = alloc_stat)
         if (alloc_stat /= 0) GO TO 990
 
         call CUTEST_cish(status, n, zero, 0, neH, lenH, Hval, Hrow, Hcol)
@@ -120,17 +119,19 @@ program sqic_main
 
         i = 0
         do k = 1, neH
-           if (Hrow(k) < Hcol(k)) then
+           if (Hrow(k) <= Hcol(k)) then
               i = i + 1
-              H%row(neH+i)  = Hcol(k)
-              H%col(neH+i)  = Hrow(k)
-              H%val(neH+i)  = Hval(k)
+              H%row(i)  = Hcol(k)
+              H%col(i)  = Hrow(k)
+              H%val(i)  = Hval(k)
            end if
         end do
-        neH = neH + i
 
-        H%n   = maxval(H%col(1:neH))
+        neH   = i
+        H%n   = maxval(Hcol(1:neH))
         H%nnz = neH
+
+        deallocate(HRow, Hcol, Hval)
      else
         H%n   = 0
         H%nnz = 0
@@ -142,7 +143,7 @@ program sqic_main
   ! Ok, we're done with CUTEst stuff.
   !-----------------------------------------------------------------------------
 
-  filename = trim(Prob)//'.out'
+  filename = trim(probname)//'.out'
   call sqic_initialize(filename, 'screen', options)
   call sqic_specs(options, 'SQIC.SPC', info)
   call sqic('Cold', prob, options, INFO, stats)
@@ -153,7 +154,7 @@ program sqic_main
 
 
   call CUTEST_creport(status, CALLS, CPU)
-  WRITE (iOut, 2000) Prob, n, m, CALLS(1), CALLS(2), &
+  WRITE (iOut, 2000) probname, n, m, CALLS(1), CALLS(2), &
                      CALLS(5), CALLS(6), info, Obj, CPU(1), CPU(2)
   close (iCutest)
 

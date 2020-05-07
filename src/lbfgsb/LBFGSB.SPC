@@ -3,3 +3,4 @@
         -1   IPRINT  print level (<0,none,=0,one line/iteration,>1,more detail)
     1.0D+7   FACTR,  the function accuracy tolerence (see README)
     1.0D-5   PGTOL,  the required norm of the projected gradient
+    1.0d+3   TLIMIT, time limit in seconds

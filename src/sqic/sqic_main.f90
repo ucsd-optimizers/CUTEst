@@ -3,13 +3,16 @@ program sqic_main
 
   implicit none
 
+  type, extends(snHx) :: cutestHx
+     integer(ip) :: mm, nn
+  end type cutestHx
+
   integer(ip), parameter :: iCutest = 55, iOut = 6, io_buffer = 11
 
   integer(ip)   :: status, alloc_stat, j, k, i
   real(rp)      :: cpu(2), calls(7)
 
-  integer(ip), allocatable :: Hrow(:), Hcol(:)
-  real(rp),    allocatable :: zero(:), b(:), Hval(:)
+  real(rp),    allocatable :: zero(:), b(:), Hx(:)
   logical,     allocatable :: equation(:), linear(:)
 
   ! SQIC variables
@@ -43,18 +46,19 @@ program sqic_main
   ! Allocate SQIC structures
   allocate &
        (prob%bl(nm), prob%bu(nm), prob%cObj(n), prob%x(nm), &
-        prob%pi(m), prob%rc(nm), prob%varnames(n), prob%connames(m), &
+        prob%pi(m), prob%rc(nm), prob%names(n+m), &
         stat=alloc_stat)
   allocate &
-       (b(m), zero(n), equation(m), linear(m), &
+       (zero(n), equation(m), linear(m), &
         stat = alloc_stat)
   if (alloc_stat /= 0) GO TO 990
 
   allocate(snAij :: prob%A)
-  allocate(snHij :: prob%H)
+!  allocate(snHij :: prob%H)
+  allocate(cutestHx :: prob%H)
 
-  zero(:)   = 0.0
-  prob%x(:) = 0.0
+  zero(1:n)   = 0.0
+  prob%x(1:n+m) = 0.0
 
   ! Get initial x, bounds, constraint types
   call CUTEST_csetup &
@@ -68,10 +72,11 @@ program sqic_main
   ! ...
 
   deallocate(equation, linear)
+  close (iCutest)
 
 
   ! Variable/constraint names
-  call CUTEST_cnames(status, n, m, probname, prob%varnames(1:n), prob%connames(1:m))
+  call CUTEST_cnames(status, n, m, probname, prob%names(1:n), prob%names(n+1:n+m))
   if (status /= 0) go to 910
   prob%name(1:8) = probname(1:8)
 
@@ -81,6 +86,9 @@ program sqic_main
   if (status /= 0) go to 910
 
   lenA = lenA - n
+
+  allocate(b(m), stat = alloc_stat)
+  if (alloc_stat /= 0) GO TO 990
 
   select type(A => prob%A)
   type is(snAij)
@@ -93,8 +101,8 @@ program sqic_main
   end select
 
   ! Adjust bounds
-  prob%bl(n+1:nm) = prob%bl(n+1:nm) - b
-  prob%bu(n+1:nm) = prob%bu(n+1:nm) - b
+  prob%bl(n+1:nm) = prob%bl(n+1:nm) - b(1:m)
+  prob%bu(n+1:nm) = prob%bu(n+1:nm) - b(1:m)
   deallocate(b)
 
   ! Objective
@@ -107,37 +115,34 @@ program sqic_main
   if ( status /= 0 ) go to 910
 
   select type(H => prob%H)
+  class is (cutestHx)
+     H%Hx => Hx_wrapper
+     H%n  =  n
+     H%nn =  n
+     H%mm =  m
+
+     ! Initialize H
+     allocate(Hx(n))
+     call cutest_chprod(status, n, m, .false., prob%x, prob%pi, prob%x, Hx)
+     deallocate(Hx)
+
   class is (snHij)
      if (lenH > 0) then
         call H%init(n, lenH)
 
-        allocate(Hrow(lenH), Hcol(lenH), Hval(lenH), stat = alloc_stat)
-        if (alloc_stat /= 0) GO TO 990
-
-        call CUTEST_cish(status, n, zero, 0, neH, lenH, Hval, Hrow, Hcol)
+        ! Swap row/col: cutest returns upper-tri, sqic wants lower-tri
+        call CUTEST_cish(status, n, zero, 0, neH, lenH, H%val, H%col, H%row)
         if (status /= 0) go to 910
 
-        i = 0
-        do k = 1, neH
-           if (Hrow(k) <= Hcol(k)) then
-              i = i + 1
-              H%row(i)  = Hcol(k)
-              H%col(i)  = Hrow(k)
-              H%val(i)  = Hval(k)
-           end if
-        end do
-
-        neH   = i
-        H%n   = maxval(Hcol(1:neH))
+        H%n   = maxval(H%col(1:neH))
         H%nnz = neH
-
-        deallocate(HRow, Hcol, Hval)
      else
         H%n   = 0
         H%nnz = 0
      end if
   end select
 
+  deallocate(zero)
 
   !-----------------------------------------------------------------------------
   ! Ok, we're done with CUTEst stuff.
@@ -152,11 +157,13 @@ program sqic_main
 
   call sqic_end(options)
 
+  ! Deallocate problem
+  call prob%trash()
+
 
   call CUTEST_creport(status, CALLS, CPU)
   WRITE (iOut, 2000) probname, n, m, CALLS(1), CALLS(2), &
                      CALLS(5), CALLS(6), info, Obj, CPU(1), CPU(2)
-  close (iCutest)
 
   call CUTEST_cterminate(status)
   stop
@@ -186,32 +193,40 @@ program sqic_main
 
 contains
 
-!!$  subroutine cutestHx(nnH, x, Hx, jcol)
-!!$    integer(ip), intent(in)  :: nnH, jcol
-!!$    real(rp),    intent(in)  :: x(nnH)
-!!$    real(rp),    intent(out) :: Hx(nnH)
-!!$    !---------------------------------------------------------------------------
-!!$    !---------------------------------------------------------------------------
-!!$    logical :: &
-!!$         gotH
-!!$    integer(ip) :: &
-!!$         status
-!!$    real(rp) :: &
-!!$         xx(nn), Hxx(nn), y(mm)
-!!$
-!!$    xx(:)     = zero
-!!$    y(:)      = zero
-!!$    xx(1:nnH) = x(1:nnH)
-!!$
-!!$    if (state == 0) then
-!!$       gotH = .true.
-!!$    else
-!!$       gotH = .false.
-!!$    end if
-!!$
-!!$    call cutest_chprod(status, nn, mm, gotH, xx, y, xx, Hxx)
-!!$    Hx(1:nnH) = Hxx(1:nnH)
-!!$
-!!$  end subroutine cutestHx
+  subroutine Hx_wrapper(H, nnH, x, Hx, jcol)
+    class(snHx), intent(inout) :: H
+    integer(ip), intent(in)    :: nnH, jcol
+    real(rp),    intent(in)    :: x(nnH)
+    real(rp),    intent(out)   :: Hx(nnH)
+
+    select type(H)
+    class is(cutestHx)
+       call cutest_Hx(H, nnH, x, Hx, jcol)
+    end select
+
+  end subroutine Hx_wrapper
+
+
+  subroutine cutest_Hx(H, nnH, x, Hx, jcol)
+    class(cutestHx), intent(inout) :: H
+    integer(ip), intent(in)    :: nnH, jcol
+    real(rp),    intent(in)    :: x(nnH)
+    real(rp),    intent(out)   :: Hx(nnH)
+    !---------------------------------------------------------------------------
+    !---------------------------------------------------------------------------
+    logical :: &
+         gotH
+    real(rp) :: y(H%mm)
+
+    y(:) = 0.0d+0
+    if (H%callstatus == 1) then ! First call
+       gotH = .false.
+    else
+       gotH = .true.
+    end if
+
+    call cutest_chprod(status, n, m, gotH, x, y, x, Hx)
+
+  end subroutine cutest_Hx
 
 end program sqic_main

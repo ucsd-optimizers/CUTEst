@@ -302,6 +302,7 @@ typedef struct asa_stat_struct /* statistics returned to user */
     INT             cgiter ; /* total cg iterations */
     INT             cgfunc ; /* total cg function evaluations */
     INT             cggrad ; /* total cg gradient evaluations */
+    int              nfree ; /* final number of free variables */
 } asa_stat ;
 
 /* prototypes */

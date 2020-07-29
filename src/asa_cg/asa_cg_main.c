@@ -33,7 +33,7 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     integer iout = 6;          /* FORTRAN unit number for error output */
     integer ierr;              /* Exit flag from OPEN and CLOSE */
     integer status;            /* Exit flag from CUTEst tools */
-    double  grad_tol = 1.e-6; /* required gradient tolerance */
+    double  grad_tol = 1.e-5; /* required gradient tolerance */
 
     integer     M, N;
     doublereal *x, *bl, *bu;
@@ -47,6 +47,10 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     asa_stat Stats;
     asacg_parm cgParm;
     asa_parm asaParm;
+
+    FILE *fp;
+    struct timeval start, end;
+    doublereal elapsedTime;
 
     /* Open problem description file OUTSDIF.d */
     ierr = 0;
@@ -98,6 +102,9 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
       pname[i] = '\0';
     }
 
+    // Start wall timer
+    gettimeofday(&start, NULL);
+
     /* Set any parameter values here
        First read in the default parameter values */
     asa_cg_default (&cgParm);
@@ -108,12 +115,18 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     cgParm.PrintLevel = 0;
     asaParm.PrintParms = FALSE;
     asaParm.PrintLevel = 0;
-
-    cgParm.maxit = 10000;
+    asaParm.StopRule = FALSE;
+    cgParm.maxit = 1000000;
 
     /* Call ASA_CG */
     status_asa = asa_cg(x, bl, bu, N, &Stats, &cgParm, &asaParm,
 			grad_tol, asa_value, asa_grad, asa_valgrad, NULL, NULL);
+
+    // Stop timer
+    gettimeofday(&end, NULL);
+    elapsedTime = end.tv_sec + end.tv_usec / 1e6 -
+      start.tv_sec - start.tv_usec / 1e6; // in seconds
+
 
     /* Get CUTEst statistics */
     CUTEST_creport(&status, calls, cpu);
@@ -121,6 +134,18 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
       printf("** CUTEst error, status = %d, aborting\n", status);
       exit(status);
     }
+
+    /* Print results to file */
+    fp = fopen("asa_cg.all", "a");
+    fprintf(fp, "%-10s %-10d  %-10li  %-10.2f %-10.2f %-10.2f %-10.2f %-10d %-8d %-15.7e %-15.7e %-12.4f %-12.4f\n",
+	    pname, N, Stats.cgiter, calls[0], calls[1], calls[2], calls[3],
+	    N - Stats.nfree, status_asa, Stats.f, Stats.pgnorm, elapsedTime, cpu[1]);
+    fclose(fp);
+
+    fp = fopen("asa_cg.pp", "a");
+    fprintf(fp, "%-10s %-10d %-15.7g %-12.4f %-12.4f\n",
+	    pname, status_asa, calls[0], elapsedTime, cpu[1]);
+    fclose(fp); //
 
     printf(" *********************** CUTEst statistics ************************\n");
     printf(" Code used               : asa_cg\n");

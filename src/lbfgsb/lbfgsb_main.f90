@@ -180,9 +180,12 @@ program          lbfgsb_main
         else if (task(1:4) == 'ABNO' ) then
            iflag = 1
            write( outfile, "( ' Abnormal exit ' )" )
+           write( outfile, *) task
+
         else if (task(1:5) == 'ERROR' ) then
            iflag = 2
            write( outfile, "( ' Error exit ' )" )
+           write( outfile, *) task
 
         else if (task(1:5) == 'NEW_X') then
 
@@ -249,6 +252,7 @@ program          lbfgsb_main
         x, xl, xu, cpu(2), wtime2 - wtime1)
 
   close(input)
+  if (outfile /=6) close(outfile)
   call CUTEST_uterminate(status)
 
   stop

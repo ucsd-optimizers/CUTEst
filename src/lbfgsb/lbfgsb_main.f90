@@ -10,7 +10,7 @@ program          lbfgsb_main
 
   implicit none
   integer          :: i, n, m, maxit, status, nFuns, nFunGs
-  integer          :: iflag, iprint, itns, lwa, liwa, isave(44)
+  integer          :: iflag, iprint, itns, lwa, liwa, nact, isave(44)
   integer          :: io_buffer = 11
 
   double precision :: epsmch, f0, f, gnorm
@@ -27,7 +27,7 @@ program          lbfgsb_main
   double precision, allocatable, dimension(:) :: x, xl, xu, g, wa
   character(10),    allocatable, dimension(:) :: xnames
 
-  integer,          parameter :: out = 6, input = 55, inspec = 56
+  integer,          parameter :: outfile = 9, stdout = 6, input = 55, inspec = 56
   double precision, parameter :: zero   = 0.0d0, one    = 1.0d0, ten = 10.0d+0
   double precision, parameter :: infty  = 1.0d+19
   double precision, parameter :: xfactr = 0.0d0, xpgtol = 0.0d0
@@ -83,7 +83,7 @@ program          lbfgsb_main
 
   !  Set up SIF data.
 
-  call CUTEST_usetup( status, input, out, io_buffer, n, x, xl, xu )
+  call CUTEST_usetup( status, input, stdout, io_buffer, n, x, xl, xu )
   if (status /= 0) go to 910
 
   !  Set bound constraint status
@@ -108,6 +108,11 @@ program          lbfgsb_main
 
   call CUTEST_unames( status, n, pname, xnames )
   if (status /= 0) go to 910
+
+  ! Open output file (if not stdout)
+  if ( outfile /= 6 ) then
+     open(outfile, file=trim(pname)//'.out', status='new')
+  end if
 
   !  Set up algorithmic input data.
 
@@ -151,7 +156,7 @@ program          lbfgsb_main
            ! be correctly printed by the driver.
 
            iflag = 4
-           write( out, "( ' Time limit ' )" )
+           write( outfile, "( ' Time limit ' )" )
         else
 
            ! The time limit has not been reached and we compute
@@ -174,10 +179,10 @@ program          lbfgsb_main
 
         else if (task(1:4) == 'ABNO' ) then
            iflag = 1
-           write( out, "( ' Abnormal exit ' )" )
+           write( outfile, "( ' Abnormal exit ' )" )
         else if (task(1:5) == 'ERROR' ) then
            iflag = 2
-           write( out, "( ' Error exit ' )" )
+           write( outfile, "( ' Error exit ' )" )
 
         else if (task(1:5) == 'NEW_X') then
 
@@ -187,7 +192,7 @@ program          lbfgsb_main
 
            if (isave(30) > maxit) then
               iflag = 3
-              write( out, "( ' Maximum number of iterations exceeded ' )" )
+              write( outfile, "( ' Maximum number of iterations exceeded ' )" )
               task = 'STOP: total no. of iterations exceeds limit'
            end if
 
@@ -218,18 +223,18 @@ program          lbfgsb_main
   call wtimer(wtime2)
   call CUTEST_ureport( status, calls, cpu )
   if (status /= 0) go to 910
-  NoSolution = .true.
 
+  NoSolution = .false.
   if (NoSolution) then
-     write( out, 2010 ) f, gnorm
+     write( outfile, 2010 ) f, gnorm
   else
-     write( out, 2015 ) f, gnorm
+     write( outfile, 2015 ) f, gnorm
      do  i = 1, n
-        write( out, 2020 ) xnames(i), xl(i), x(i), xu(i), g(i)
+        write( outfile, 2020 ) xnames(i), xl(i), x(i), xu(i), g(i)
      end do
   end if
 
-  write(out, 2000) pname, n, int(calls(1)), int(calls(2)), iflag, f, cpu(1), cpu(2)
+  write(outfile, 2000) pname, n, int(calls(1)), int(calls(2)), iflag, f, cpu(1), cpu(2)
 
   ! Print results to a file
   ! Added by PEG. Aug 28 2017.
@@ -237,9 +242,10 @@ program          lbfgsb_main
   nFuns  = calls(1)
   nFunGs = calls(2)
   itns   = isave(30)
+  nact   = isave(39)
 
   call lbGetStats &
-       (pname(1:10), n, iflag, itns, nFuns, nFunGs, f, g, gnorm, &
+       (pname(1:10), n, iflag, itns, nact, nFuns, nFunGs, f, g, gnorm, &
         x, xl, xu, cpu(2), wtime2 - wtime1)
 
   close(input)
@@ -248,11 +254,11 @@ program          lbfgsb_main
   stop
 
 910 continue
-  write( out, "( ' CUTEst error, status = ', i0, ', stopping' )") status
+  write( stdout, "( ' CUTEst error, status = ', i0, ', stopping' )") status
   stop
 
 990 continue
-  write( out, "( ' Allocation error, status = ', I0 )" ) status
+  write( stdout, "( ' Allocation error, status = ', I0 )" ) status
   stop
 !
 !  Non-executable statements.
@@ -282,11 +288,11 @@ end program lbfgsb_main
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 subroutine lbGetStats &
-     (probName, n, INFO, itns, nFuns, nFunGs, &
+     (probName, n, INFO, itns, nact, nFuns, nFunGs, &
       f, g, gNorm, x, bl, bu, cpuTime, wallTime)
 
   implicit         none
-  integer          :: INFO, itns, n, nFuns, nFunGs
+  integer          :: INFO, itns, n, nact, nFuns, nFunGs
   double precision :: f, gNorm, cpuTime, wallTime
   double precision :: g(n), x(n), bl(n), bu(n)
   character        :: ProbName*10
@@ -401,7 +407,7 @@ subroutine lbGetStats &
      write(iAll, 4000)
   end if
 
-  write(String, 4100) probName, n, itns, nFuns, wallTime, cpuTime, gNorm, f, msg
+  write(String, 4100) probName, n, itns, nact, nFuns, wallTime, cpuTime, gNorm, f, msg
   write(iAll,7000) trim(String)
 
   close(iAll)
@@ -451,11 +457,11 @@ subroutine lbGetStats &
 !3200 format(' \\end{tabular}'
 !    &    // ' \\begin{verbatim}')
 
-4000 format(6x, 'Name', 6x, 'n', 6x, 'Itns', 6x,                  &
-            'nFun', 1x, 3x, 'wall(s)', 1x, 3x, 'cpu(s)', 2x,   &
+4000 format(6x, 'Name', 6x, 'n', 6x, 'Itns', 6x, 'nAct', 6x, &
+            'nFun', 1x, 3x, 'wall(s)', 1x, 3x, 'cpu(s)', 2x, &
             'norm gfree', 6x, 'Obj', &
             11x, 'Result')
-4100 format( a10, i7, 2i10, 2x, f9.2, 1x, f9.2, 3x, 1p, e9.2, 2x, e16.9, 2x, a)
+4100 format( a10, i7, 3i10, 2x, f9.2, 1x, f9.2, 3x, 1p, e9.2, 2x, e16.9, 2x, a)
 
 6000 format('  ProbName', 2x, 'Info', 10x, 'Time', 10x, ' CPU', 11x, 'Funs' )
 6100 format(a10, 4x, i2, 2x, f12.4, 2x, f12.4, 3x, f12.3)

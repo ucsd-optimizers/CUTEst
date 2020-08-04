@@ -33,7 +33,7 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     integer iout = 6;          /* FORTRAN unit number for error output */
     integer ierr;              /* Exit flag from OPEN and CLOSE */
     integer status;            /* Exit flag from CUTEst tools */
-    double  grad_tol = 1.e-5; /* required gradient tolerance */
+    double  grad_tol = 1.e-6; /* required gradient tolerance */
 
     integer     M, N;
     doublereal *x, *bl, *bu;
@@ -137,8 +137,8 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
 
     /* Print results to file */
     fp = fopen("asa_cg.all", "a");
-    fprintf(fp, "%-10s %-10d  %-10li  %-10.2f %-10.2f %-10.2f %-10.2f %-10d %-8d %-15.7e %-15.7e %-12.4f %-12.4f\n",
-	    pname, N, Stats.cgiter, calls[0], calls[1], calls[2], calls[3],
+    fprintf(fp, "%-10s %-10d  %-10li %-10.2f %-10.2f %-10d %-6d %-15.7e %-15.7e %-12.4f %-12.4f\n",
+	    pname, N, Stats.cgiter, calls[0], calls[1],
 	    N - Stats.nfree, status_asa, Stats.f, Stats.pgnorm, elapsedTime, cpu[1]);
     fclose(fp);
 

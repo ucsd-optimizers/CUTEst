@@ -137,6 +137,8 @@ program          lbfgsb_main
 
      call setulb( n, m, x, xl, xu, nbd, f, g, xfactr, xpgtol, wa, &
                   iwa, task, iprint, csave, lsave, isave, dsave )
+!!$     call setulb( n, m, x, xl, xu, nbd, f, g, factr, pgtol, wa, &
+!!$                  iwa, task, iprint, csave, lsave, isave, dsave )
 
      if (task(1:2) == 'FG') then
 
@@ -167,6 +169,7 @@ program          lbfgsb_main
         endif
 
         ! Return to the minimization routine.
+
      else
 
         f0 = dsave(2); gnorm = dsave(13); epsmch = dsave(5)
@@ -175,7 +178,9 @@ program          lbfgsb_main
            optCon(1) = gnorm  <= pgtol*(one + abs(f))
            optCon(2) = f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)
            optCon(3) = gnorm  <= sqrt(epsmch)
-           iflag = 0 ! not going to happen because xfactr, xpgtol=0
+           ! xpgtol, xfactr = 0 so we are overriding Lbfgsb conditions
+           ! this if should never be called
+           iflag = 0
 
         else if (task(1:4) == 'ABNO' ) then
            iflag = 1
@@ -202,30 +207,33 @@ program          lbfgsb_main
            optCon(1) = gnorm  <= pgtol*(one + abs(f))
            optCon(2) = f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)
            optCon(3) = gnorm  <= sqrt(epsmch)
-           if (OptCon(1) .and. OptCon(2)  .or.  OptCon(3)) then
+           if (OptCon(1) .and. OptCon(2) .or. OptCon(3)) then
               task  = 'STOP: the termination conditions are satisfied'
               iflag = 0
            end if
-        endif
-
-!!$           write(6,*) ' gnorm:', gnorm
-!!$           write(6,*) ' f0 f:', abs(f0), abs(f)
-!!$           write(6,*) ' tol:', pgtol, factr, sqrt(epsmch)
-!!$           write(6,*) f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)
-!!$           write(6,*) gnorm  <= pgtol*(one + abs(f))
-!!$           write(6,*) gnorm  <= sqrt(epsmch)
+        end if
      end if
   end do
 
   gnorm = dsave( 13 )
 
-  if (iflag ==0  .and. .not. ((OptCon(1) .and. OptCon(2)) .or. OptCon(3))) iflag = 5
+  !if (iflag == 0  .and. .not. ((OptCon(1) .and. OptCon(2)) .or. OptCon(3))) iflag = 5
  !if (iflag /=0  .and.                 gNorm <=  pgTol*(one + abs(f))*ten) iflag = 6
 
   ! Terminal exit.
   call wtimer(wtime2)
   call CUTEST_ureport( status, calls, cpu )
   if (status /= 0) go to 910
+
+  write(outfile, *) ''
+  write(outfile, *) 'Optimality test = gnorm  <= pgtol*(1+abs(f))  ', optCon(1)
+  write(outfile, *) 'Optimality test = gnorm  <= pgtol*(1+abs(f))  ', gnorm,  ' <= ', pgtol*(1 + abs(f))
+  write(outfile, *) 'Optimality test = f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)  ', optCon(2)
+  write(outfile, *) 'Optimality test = f0 - f <  factr*epsmch*max(abs(f0),abs(f),one)  ', f0-f, ' < ', &
+                     factr*epsmch*max(abs(f0),abs(f),one)
+  write(outfile, *) 'Optimality test = gnorm  <= sqrt(epsmch)  ', optCon(3)
+  write(outfile, *) 'Optimality test = gnorm  <= sqrt(epsmch)  ', gnorm,  ' <= ', sqrt(epsmch)
+  write(outfile, *) ''
 
   NoSolution = .false.
   if (NoSolution) then
@@ -238,9 +246,6 @@ program          lbfgsb_main
   end if
 
   write(outfile, 2000) pname, n, int(calls(1)), int(calls(2)), iflag, f, cpu(1), cpu(2)
-
-  ! Print results to a file
-  ! Added by PEG. Aug 28 2017.
 
   nFuns  = calls(1)
   nFunGs = calls(2)

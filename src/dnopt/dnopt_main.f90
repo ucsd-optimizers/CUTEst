@@ -35,7 +35,7 @@ program           DNOPT_main
 
 
   integer,          parameter   :: iPrint = 15, iSpecs = 4,    &
-                                   iSumm  = 6,  nout   = 6,    &
+                                   iSumm  = 0,  nout   = 6,    &
                                    input  = 55, io_buffer = 11
 
   integer,          parameter   :: lvlHes = 86

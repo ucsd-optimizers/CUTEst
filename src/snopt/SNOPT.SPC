@@ -1,16 +1,11 @@
 BEGIN SNOPT Problem
-   Jacobian                   SPARSE  * Needed by the CUTE interface
+   Major Iterations Limit    500000
+   Iterations                500000
+   Time limit                3600
 
-   Derivative level                3
+   Major print level         1
+   Minor print level         0
 
-   Superbasics limit            2000
-
-   Major iterations             2000
-   Iteration limit           1000000
-
-   Major print level               1
-   Minor print level               0
-
-   Verify level                   -1
-   Solution                       No
+   Verify level             -1
+   Solution                  Yes
 END SNOPT Problem

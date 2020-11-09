@@ -19,14 +19,14 @@ c_float* vec_copy(c_float *a,
 # endif // ifndef EMBEDDED
 
 /* copy vector a into preallocated vector b */
-void prea_vec_copy(c_float *a,
-                   c_float *b,
-                   c_int    n);
+void prea_vec_copy(const c_float *a,
+                   c_float       *b,
+                   c_int          n);
 
 /* copy integer vector a into preallocated vector b */
-void prea_int_vec_copy(c_int *a,
-                       c_int *b,
-                       c_int  n);
+void prea_int_vec_copy(const c_int *a,
+                       c_int       *b,
+                       c_int        n);
 
 /* set float vector to scalar */
 void vec_set_scalar(c_float *a,
@@ -86,7 +86,7 @@ c_float vec_prod(const c_float *a,
                  const c_float *b,
                  c_int          n);
 
-/* elementwse product a.*b stored in c*/
+/* Elementwise product a.*b stored in c*/
 void vec_ew_prod(const c_float *a,
                  const c_float *b,
                  c_float       *c,
@@ -94,16 +94,16 @@ void vec_ew_prod(const c_float *a,
 
 # if EMBEDDED != 1
 
-/* elementwise sqrt of the vector elements */
+/* Elementwise sqrt of the vector elements */
 void vec_ew_sqrt(c_float *a,
                  c_int    n);
 
-/* elementwise max between each vector component and max_val */
+/* Elementwise max between each vector component and max_val */
 void vec_ew_max(c_float *a,
                 c_int    n,
                 c_float  max_val);
 
-/* elementwise min between each vector component and max_val */
+/* Elementwise min between each vector component and max_val */
 void vec_ew_min(c_float *a,
                 c_int    n,
                 c_float  min_val);
@@ -125,7 +125,7 @@ void vec_ew_min_vec(const c_float *a,
 
 /* MATRIX FUNCTIONS ----------------------------------------------------------*/
 
-/* multiply scalar to vmatrixector */
+/* multiply scalar to matrix */
 void mat_mult_scalar(csc    *A,
                      c_float sc);
 

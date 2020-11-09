@@ -1,7 +1,3 @@
-/* NB: this is a subset of the routines in the CSPARSE package by
-   Tim Davis et. al., for the full package please visit
-   http://www.cise.ufl.edu/research/sparse/CSparse/ */
-
 #ifndef CS_H
 # define CS_H
 
@@ -56,9 +52,8 @@ csc* csc_spalloc(c_int m,
  * Free sparse matrix
     (uses FREE to free inner arrays x, i, p)
  * @param  A Matrix in CSC format
- * @return   return NULL pointer if everything works
  */
-csc* csc_spfree(csc *A);
+void csc_spfree(csc *A);
 
 
 /**
@@ -157,7 +152,7 @@ c_int csc_cumsum(c_int *p,
                  c_int  n);
 
 /**
- * Compute inverse of permuation matrix stored in the vector p.
+ * Compute inverse of permutation matrix stored in the vector p.
  * The computed inverse is also stored in a vector.
  */
 c_int* csc_pinv(c_int const *p,

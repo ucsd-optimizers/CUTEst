@@ -32,20 +32,20 @@ bool utSetInterruptEnabled(bool);
 /* METHODS are the same for both */
 
 /**
- * Start listner for ctrl-c interrupts
+ * Start listener for ctrl-c interrupts
  */
-void startInterruptListener(void);
+void osqp_start_interrupt_listener(void);
 
 /**
- * End listner for ctrl-c interrupts
+ * End listener for ctrl-c interrupts
  */
-void endInterruptListener(void);
+void osqp_end_interrupt_listener(void);
 
 /**
  * Check if the solver has been interrupted
  * @return  Boolean indicating if the solver has been interrupted
  */
-int  isInterrupted(void);
+int osqp_is_interrupted(void);
 
 
 # ifdef __cplusplus

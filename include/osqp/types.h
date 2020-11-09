@@ -14,18 +14,18 @@ extern "C" {
 ******************/
 
 /**
- *  Matrix in compressed-column or triplet form
+ *  Matrix in compressed-column form.
+ *  The structure is used internally to store matrices in the triplet form as well,
+ *  but the API requires that the matrices are in the CSC format.
  */
 typedef struct {
-  c_int    nzmax; ///< maximum number of entries.
+  c_int    nzmax; ///< maximum number of entries
   c_int    m;     ///< number of rows
   c_int    n;     ///< number of columns
-  c_int   *p;     ///< column pointers (size n+1) (col indices (size nzmax)
-                  // start from 0 when using triplet format (direct KKT matrix
-                  // formation))
+  c_int   *p;     ///< column pointers (size n+1); col indices (size nzmax) start from 0 when using triplet format (direct KKT matrix formation)
   c_int   *i;     ///< row indices, size nzmax starting from 0
   c_float *x;     ///< numerical values, size nzmax
-  c_int    nz;    ///< # of entries in triplet matrix, -1 for csc
+  c_int    nz;    ///< number of entries in triplet matrix, -1 for csc
 } csc;
 
 /**
@@ -55,13 +55,13 @@ typedef struct {
  * Solution structure
  */
 typedef struct {
-  c_float *x; ///< Primal solution
+  c_float *x; ///< primal solution
   c_float *y; ///< Lagrange multiplier associated to \f$l <= Ax <= u\f$
 } OSQPSolution;
 
 
 /**
- * Solver return nformation
+ * Solver return information
  */
 typedef struct {
   c_int iter;          ///< number of iterations taken
@@ -69,8 +69,7 @@ typedef struct {
   c_int status_val;    ///< status as c_int, defined in constants.h
 
 # ifndef EMBEDDED
-  c_int status_polish; ///< polish status: successful (1), unperformed (0), (-1)
-                       // unsuccessful
+  c_int status_polish; ///< polish status: successful (1), unperformed (0), (-1) unsuccessful
 # endif // ifndef EMBEDDED
 
   c_float obj_val;     ///< primal objective
@@ -80,6 +79,7 @@ typedef struct {
 # ifdef PROFILING
   c_float setup_time;  ///< time taken for setup phase (seconds)
   c_float solve_time;  ///< time taken for solve phase (seconds)
+  c_float update_time; ///< time taken for update phase (seconds)
   c_float polish_time; ///< time taken for polish phase (seconds)
   c_float run_time;    ///< total time  (seconds)
 # endif // ifdef PROFILING
@@ -97,7 +97,7 @@ typedef struct {
  * Polish structure
  */
 typedef struct {
-  csc *Ared;          ///< Active rows of A.
+  csc *Ared;          ///< active rows of A
   ///<    Ared = vstack[Alow, Aupp]
   c_int    n_low;     ///< number of lower-active rows
   c_int    n_upp;     ///< number of upper-active rows
@@ -125,9 +125,7 @@ typedef struct {
 typedef struct {
   c_int    n; ///< number of variables n
   c_int    m; ///< number of constraints m
-  csc     *P; ///< quadratic part of the cost P in csc format (size n x n). It
-              ///  can be either the full P or only the upper triangular part. The
-              ///  workspace stores only the upper triangular part
+  csc     *P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
   csc     *A; ///< linear constraints matrix A in csc format (size m x n)
   c_float *q; ///< dense array for linear part of cost function (size n)
   c_float *l; ///< dense array for lower bound (size m)
@@ -141,24 +139,18 @@ typedef struct {
 typedef struct {
   c_float rho;                    ///< ADMM step rho
   c_float sigma;                  ///< ADMM step sigma
-  c_int   scaling;                ///< heuristic data scaling iterations. If 0,
-                                  // scaling disabled
+  c_int   scaling;                ///< heuristic data scaling iterations; if 0, then disabled.
 
 # if EMBEDDED != 1
   c_int   adaptive_rho;           ///< boolean, is rho step size adaptive?
-  c_int   adaptive_rho_interval;  ///< Number of iterations between rho
-                                  // adaptations rho. If 0, it is automatic
-  c_float adaptive_rho_tolerance; ///< Tolerance X for adapting rho. The new rho
-                                  // has to be X times larger or 1/X times
-                                  // smaller than the current one to trigger a
-                                  // new factorization.
+  c_int   adaptive_rho_interval;  ///< number of iterations between rho adaptations; if 0, then it is automatic
+  c_float adaptive_rho_tolerance; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
 #  ifdef PROFILING
-  c_float adaptive_rho_fraction;  ///< Interval for adapting rho (fraction of
-                                  // the setup time)
+  c_float adaptive_rho_fraction;  ///< interval for adapting rho (fraction of the setup time)
 #  endif // Profiling
 # endif // EMBEDDED != 1
 
-  c_int                   max_iter;      ///< maximum iterations
+  c_int                   max_iter;      ///< maximum number of iterations
   c_float                 eps_abs;       ///< absolute convergence tolerance
   c_float                 eps_rel;       ///< relative convergence tolerance
   c_float                 eps_prim_inf;  ///< primal infeasibility tolerance
@@ -167,25 +159,19 @@ typedef struct {
   enum linsys_solver_type linsys_solver; ///< linear system solver to use
 
 # ifndef EMBEDDED
-  c_float delta;                         ///< regularization parameter for
-                                         // polish
+  c_float delta;                         ///< regularization parameter for polishing
   c_int   polish;                        ///< boolean, polish ADMM solution
-  c_int   polish_refine_iter;            ///< iterative refinement steps in
-                                         // polish
+  c_int   polish_refine_iter;            ///< number of iterative refinement steps in polishing
 
-  c_int verbose;                         ///< boolean, write out progres
+  c_int verbose;                         ///< boolean, write out progress
 # endif // ifndef EMBEDDED
 
-  c_int scaled_termination;              ///< boolean, use scaled termination
-                                         // criteria
-  c_int check_termination;               ///< integer, check termination
-                                         // interval. If 0, termination checking
-                                         // is disabled
+  c_int scaled_termination;              ///< boolean, use scaled termination criteria
+  c_int check_termination;               ///< integer, check termination interval; if 0, then termination checking is disabled
   c_int warm_start;                      ///< boolean, warm start
 
 # ifdef PROFILING
-  c_float time_limit;                    ///< maximum seconds allowed to solve
-                                         // the problem
+  c_float time_limit;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
 # endif // ifdef PROFILING
 } OSQPSettings;
 
@@ -200,11 +186,10 @@ typedef struct {
   /// Linear System solver structure
   LinSysSolver *linsys_solver;
 
-        # ifndef EMBEDDED
-
+# ifndef EMBEDDED
   /// Polish structure
   OSQPPolish *pol;
-        # endif // ifndef EMBEDDED
+# endif // ifndef EMBEDDED
 
   /**
    * @name Vector used to store a vectorized rho parameter
@@ -215,10 +200,9 @@ typedef struct {
 
   /** @} */
 
-        # if EMBEDDED != 1
-  c_int *constr_type; ///< Type of constraints: loose (-1), equality (1),
-                      // inequality (0)
-        # endif // if EMBEDDED != 1
+# if EMBEDDED != 1
+  c_int *constr_type; ///< Type of constraints: loose (-1), equality (1), inequality (0)
+# endif // if EMBEDDED != 1
 
   /**
    * @name Iterates
@@ -243,9 +227,9 @@ typedef struct {
    * approximate tolerances computation and adapting rho
    * @{
    */
-  c_float *Ax;  ///< Scaled A * x
-  c_float *Px;  ///< Scaled P * x
-  c_float *Aty; ///< Scaled A * x
+  c_float *Ax;  ///< scaled A * x
+  c_float *Px;  ///< scaled P * x
+  c_float *Aty; ///< scaled A' * y
 
   /** @} */
 
@@ -253,7 +237,7 @@ typedef struct {
    * @name Primal infeasibility variables
    * @{
    */
-  c_float *delta_y;   ///< Difference of consecutive dual iterates
+  c_float *delta_y;   ///< difference between consecutive dual iterates
   c_float *Atdelta_y; ///< A' * delta_y
 
   /** @} */
@@ -262,7 +246,7 @@ typedef struct {
    * @name Dual infeasibility variables
    * @{
    */
-  c_float *delta_x;  ///< Difference of consecutive primal iterates
+  c_float *delta_x;  ///< difference between consecutive primal iterates
   c_float *Pdelta_x; ///< P * delta_x
   c_float *Adelta_x; ///< A * delta_x
 
@@ -274,29 +258,34 @@ typedef struct {
    */
 
   c_float *D_temp;   ///< temporary primal variable scaling vectors
-  c_float *D_temp_A; ///< temporary primal variable scaling vectors storing
-                     // norms of A columns
-  c_float *E_temp;   ///< temporary constraints scaling vectors storing norms of
-                     // A' columns
+  c_float *D_temp_A; ///< temporary primal variable scaling vectors storing norms of A columns
+  c_float *E_temp;   ///< temporary constraints scaling vectors storing norms of A' columns
 
 
   /** @} */
 
-  OSQPSettings *settings; ///< Problem settings
-  OSQPScaling  *scaling;  ///< Scaling vectors
-  OSQPSolution *solution; ///< Problem solution
-  OSQPInfo     *info;     ///< Solver information
+  OSQPSettings *settings; ///< problem settings
+  OSQPScaling  *scaling;  ///< scaling vectors
+  OSQPSolution *solution; ///< problem solution
+  OSQPInfo     *info;     ///< solver information
 
-        # ifdef PROFILING
-  OSQPTimer *timer;       ///< Timer object
+# ifdef PROFILING
+  OSQPTimer *timer;       ///< timer object
 
   /// flag indicating whether the solve function has been run before
   c_int first_run;
-        # endif // ifdef PROFILING
 
-        # ifdef PRINTING
+  /// flag indicating whether the update_time should be cleared
+  c_int clear_update_time;
+
+  /// flag indicating that osqp_update_rho is called from osqp_solve function
+  c_int rho_update_from_solve;
+# endif // ifdef PROFILING
+
+# ifdef PRINTING
   c_int summary_printed; ///< Has last summary been printed? (true/false)
-        # endif // ifdef PRINTING
+# endif // ifdef PRINTING
+
 } OSQPWorkspace;
 
 
@@ -307,28 +296,25 @@ typedef struct {
  *      on the choice
  */
 struct linsys_solver {
-  enum linsys_solver_type type; ///< Linear system solver type (see type.h)
-  // Functions
-  c_int (*solve)(LinSysSolver       *self,
-                 c_float            *b,
-                 const OSQPSettings *settings); ///< Solve linear system
-
-    # ifndef EMBEDDED
-  void (*free)(LinSysSolver *self);             ///< Free linear system solver
-                                                // (only in desktop version)
-    # endif // ifndef EMBEDDED
-
-    # if EMBEDDED != 1
-  c_int (*update_matrices)(LinSysSolver *self, const csc *P, const csc *A,
-                           const OSQPSettings *settings); ///< Update matrices P
-                                                          // and A in the solver
-  c_int (*update_rho_vec)(LinSysSolver  *s,
-                          const c_float *rho_vec,
-                          const c_int    m);              ///< Update rho
-    # endif // if EMBEDDED != 1
+  enum linsys_solver_type type;                 ///< linear system solver type functions
+  c_int (*solve)(LinSysSolver *self,
+                 c_float      *b);              ///< solve linear system
 
 # ifndef EMBEDDED
-  c_int nthreads; ///< Number of threads active
+  void (*free)(LinSysSolver *self);             ///< free linear system solver (only in desktop version)
+# endif // ifndef EMBEDDED
+
+# if EMBEDDED != 1
+  c_int (*update_matrices)(LinSysSolver *s,
+                           const csc *P,            ///< update matrices P
+                           const csc *A);           //   and A in the solver
+
+  c_int (*update_rho_vec)(LinSysSolver  *s,
+                          const c_float *rho_vec);  ///< Update rho_vec
+# endif // if EMBEDDED != 1
+
+# ifndef EMBEDDED
+  c_int nthreads; ///< number of threads active
 # endif // ifndef EMBEDDED
 };
 

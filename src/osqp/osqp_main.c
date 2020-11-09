@@ -473,7 +473,7 @@ int MAINENTRY(void) {
 /* define Solver settings as default */
 
     OSQPSettings * settings = (OSQPSettings *)c_malloc(sizeof(OSQPSettings));
-    set_default_settings(settings);
+    osqp_set_default_settings(settings);
 
 /* Parameter settings are overwritten using any values stored in the
    OSQP.SPC file. The format of the file is parameter name at the start
@@ -662,11 +662,11 @@ int MAINENTRY(void) {
 
     OSQPWorkspace * work;
 
-    work = osqp_setup(data, settings);
+    osqp_status = osqp_setup(&work, data, settings);
 
    /* solve Problem */
 
-    osqp_status = osqp_solve(work);
+    osqp_solve(work);
 
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */

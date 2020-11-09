@@ -102,7 +102,7 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
       pname[i] = '\0';
     }
 
-    // Start wall timer
+    /* Start wall timer */
     gettimeofday(&start, NULL);
 
     /* Set any parameter values here
@@ -122,10 +122,10 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     status_asa = asa_cg(x, bl, bu, N, &Stats, &cgParm, &asaParm,
 			grad_tol, asa_value, asa_grad, asa_valgrad, NULL, NULL);
 
-    // Stop timer
+    /* Stop timer */
     gettimeofday(&end, NULL);
     elapsedTime = end.tv_sec + end.tv_usec / 1e6 -
-      start.tv_sec - start.tv_usec / 1e6; // in seconds
+      start.tv_sec - start.tv_usec / 1e6; /* in seconds */
 
 
     /* Get CUTEst statistics */
@@ -145,7 +145,7 @@ extern "C" {   /* To prevent C++ compilers from mangling symbols */
     fp = fopen("asa_cg.pp", "a");
     fprintf(fp, "%-10s %-10d %-15.7g %-12.4f %-12.4f\n",
 	    pname, status_asa, calls[0], elapsedTime, cpu[1]);
-    fclose(fp); //
+    fclose(fp);
 
     printf(" *********************** CUTEst statistics ************************\n");
     printf(" Code used               : asa_cg\n");

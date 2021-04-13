@@ -245,7 +245,7 @@ program sdsqp_main
 
 
   ! Compute the objective and constraints at x = 0.
-  myprob%z(1:n) = zero
+  myprob%z(1:nm) = zero
   call CUTEST_cfn (status, n, m, myprob%z, fObj, c)
   if (status /= 0) go to 910
 
@@ -412,10 +412,20 @@ program sdsqp_main
   call sdsqp_end(opts)
 
   ! Deallocate
+  if (allocated(Names)) deallocate(Names)
+  if (allocated(c))     deallocate(c)
+  if (allocated(rowJ))  deallocate(rowJ)
+  if (allocated(colJ))  deallocate(colJ)
+  if (allocated(valJ))  deallocate(valJ)
+
   if (allocated(myprob%iGfun)) deallocate(myprob%iGfun)
   if (allocated(myprob%jGvar)) deallocate(myprob%jGvar)
   if (allocated(myprob%locG))  deallocate(myprob%locG)
   if (allocated(myprob%G))     deallocate(myprob%G)
+
+  if (allocated(myprob%rowH))  deallocate(myprob%rowH)
+  if (allocated(myprob%colH))  deallocate(myprob%colH)
+  if (allocated(myprob%valH))  deallocate(myprob%valH)
 
 900 stop
 

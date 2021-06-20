@@ -18,6 +18,8 @@ program sqopt_main
        ObjQP, fObj, sInf
 
   integer   :: lencw, leniw, lenrw, lencu, leniu, lenru
+  character(len=10), allocatable :: &
+       Names10(:)
   character(len=8), allocatable :: &
        cw0(:), cw(:), cu(:), Names(:)
   integer, allocatable :: &
@@ -74,8 +76,12 @@ program sqopt_main
   close (iCutest)
 
   ! Variable/constraint names
-  call CUTEST_cnames(status, n, m, probname, names(1:n), names(n+1:n+m))
+  allocate(Names10(nm))
+  call CUTEST_cnames(status, n, m, probname, names10(1:n), names10(n+1:n+m))
   if (status /= 0) go to 910
+
+  Names(1:nm) = Names10(1:nm)
+  deallocate(Names10)
 
   ! Constraint matrix
   call CUTEST_cdimsj(status, lenA)
@@ -156,6 +162,11 @@ program sqopt_main
           ('Total real workspace', lenrw, 0, 0, Errors, &
           cw, lencw, iw, leniw, rw, lenrw )
   end if
+
+  hs(1:nm) = 0
+  eType(1:nm) = 0
+  pi(1:m) = 0.0d+0
+  rc(1:nm) = 0.0d+0
 
   call sqopt &
        ('Cold', cutestHx, m, n, neA, nNames, ncObj, nnH, iObj, &

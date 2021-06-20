@@ -40,7 +40,7 @@ program sqopt_main
   if (status /= 0) go to 910
 
   if (m == 0) then
-     return
+     stop
   end if
 
   nm = n+m
@@ -225,7 +225,6 @@ program sqopt_main
           ,' Set up time             =      ', 0P, F10.2, ' seconds' /  &
           ,' Solve time              =      ', 0P, F10.2, ' seconds' // &
            66('*') /)
-
 contains
 
   subroutine cutestHx &

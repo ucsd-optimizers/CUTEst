@@ -11,6 +11,8 @@ SHELL = /bin/$(BINSHELL)
 
 all: all_$(PRECIS)
 all_single: tools_single
+	( cd sdsqp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   sdsqp PRECIS=single PWD=$(PWD)/sdsqp )
 	( cd sqopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    sqopt PRECIS=single PWD=$(PWD)/sqopt )
 	( cd asa_cg  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
@@ -106,6 +108,8 @@ all_single: tools_single
 	( cd worhp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    worhp  PRECIS=single PWD=$(PWD)/worhp )
 all_double: tools_double
+	( cd sdsqp  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
+                   sdsqp PRECIS=double PWD=$(PWD)/sdsqp )
 	( cd sqopt  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
                    sqopt PRECIS=double PWD=$(PWD)/sqopt )
 	( cd asa_cg  ; $(MAKE) -f $(CUTEST)/makefiles/$(VERSION) \
